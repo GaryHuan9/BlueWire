@@ -1,6 +1,7 @@
 ﻿using System;
 using CodeHelpers;
 using CodeHelpers.Unity;
+using CodeHelpers.Unity.Vectors;
 using CodeHelpers.Vectors;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -21,6 +22,7 @@ namespace BlueWire
 		Camera sourceCamera;
 
 		public Float2 WorldSize => sourceCamera.orthographicSize * 2f * new Float2(sourceCamera.aspect, 1f);
+		public Float2 MousePosition => sourceCamera.ScreenToWorldPoint(Input.mousePosition).C().XY;
 
 		public Float2 Position { get; private set; }
 		public float Elevation { get; private set; } = 1f;
@@ -46,5 +48,8 @@ namespace BlueWire
 
 			OnReoriented?.Invoke();
 		}
+
+		public Float2 WorldToViewport(Float2 world) => (world - Position) / Elevation;
+		public Float2 ViewportToWorld(Float2 viewport) => viewport * Elevation + Position;
 	}
 }
