@@ -1,0 +1,3 @@
+[submodule "CodeHelpers"]
+	path = CodeHelpers
+	url = https://github.com/MMXXX-VIII/CodeHelpers.git
