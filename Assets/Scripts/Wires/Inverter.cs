@@ -1,12 +1,16 @@
-﻿using BlueWire.Tiles;
+﻿using System.Collections.Generic;
 using CodeHelpers.Vectors;
 using UnityEngine;
 
 namespace BlueWire.Wires
 {
-	public class Inverter : Tile
+	public class Inverter : Microchip
 	{
-		public Inverter(Int2 mainPosition, int rotation, Archetype archetype) : base(mainPosition, rotation, archetype) { }
+		public Inverter(Int2 mainPosition, int rotation, Archetype archetype) : base(mainPosition, rotation, archetype)
+		{
+			InPorts = new[] {new Port(this, PortType.input, Int2.zero, Int2.left)};
+			OutPorts = new[] {new Port(this, PortType.output, Int2.right, Int2.right)};
+		}
 
 		static Inverter()
 		{
@@ -28,6 +32,9 @@ namespace BlueWire.Wires
 
 		static readonly Sprite spriteLeft;
 		static readonly Sprite spriteRight;
+
+		public override IReadOnlyList<Port> InPorts { get; }
+		public override IReadOnlyList<Port> OutPorts { get; }
 
 		public override Sprite GetSprite(Int2 localPosition) => localPosition.x == 0 ? spriteLeft : spriteRight;
 	}

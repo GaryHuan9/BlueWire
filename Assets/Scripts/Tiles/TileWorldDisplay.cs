@@ -1,4 +1,5 @@
-﻿using BlueWire.Worlds;
+﻿using BlueWire.Wires;
+using BlueWire.Worlds;
 using CodeHelpers.Unity.DelayedExecute;
 using CodeHelpers.Vectors;
 using CodeHelpers.Vectors.Enumerables;
@@ -68,6 +69,13 @@ namespace BlueWire.Tiles
 				tileObject.transform.SetParent(transform, false);
 
 				tileObject.AddComponent<SpriteRenderer>().sprite = tile.GetSprite(tile.TransformWorldToLocal(position));
+
+				if (tile is Wire wire)
+				{
+					int hashCode = wire.Wires.GetHashCode();
+					Color color = new Color32((byte)((hashCode >> 16) & 0xFF), (byte)((hashCode >> 8) & 0xFF), (byte)(hashCode & 0xFF), byte.MaxValue);
+					tileObject.GetComponent<SpriteRenderer>().color = color;
+				}
 
 				tileObject.transform.localPosition = viewportCamera.WorldToViewport(position + Float2.half).XY_;
 				tileObject.transform.localEulerAngles = Float3.backward * tile.rotation;

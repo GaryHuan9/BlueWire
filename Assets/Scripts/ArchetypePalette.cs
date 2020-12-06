@@ -59,7 +59,7 @@ namespace BlueWire
 		public override string Name => "Wire";
 		public override Int2 Size => Int2.one;
 
-		public override Tile GetNewTile(Int2 position, int rotation) => new Wire(position, rotation, this);
+		public override Tile GetNewTile(Int2 position, int rotation) => new Wire(position, this);
 	}
 
 	public class InverterArchetype : Archetype

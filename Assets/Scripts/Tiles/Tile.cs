@@ -32,6 +32,18 @@ namespace BlueWire.Tiles
 		/// </summary>
 		public EnumerableSpace2D Cover => GetCover(mainPosition, archetype, Rotated);
 
+		/// <summary>
+		/// Invoked once when <see cref="Tile"/> was just created. Invoked after the constructor
+		/// when all of the tile pieces have been assigned to the world.
+		/// </summary>
+		public virtual void OnCreated() { }
+
+		/// <summary>
+		/// Invoked once when <see cref="Tile"/> was just removed. Invoked after removal
+		/// when all of the tile pieces have been removed from the world.
+		/// </summary>
+		public virtual void OnRemoved() { }
+
 		public abstract Sprite GetSprite(Int2 localPosition);
 
 		/// <summary>
@@ -64,7 +76,7 @@ namespace BlueWire.Tiles
 		/// <summary>
 		/// Invoked when the immediate neighbors of this tile changed.
 		/// </summary>
-		public virtual void OnNeighborChanged() { }
+		public virtual void OnNeighborChanged(Int2 neighbor) { }
 
 		protected static Sprite CreateSprite(Color[,] colors)
 		{
@@ -95,5 +107,7 @@ namespace BlueWire.Tiles
 
 		public static EnumerableSpace2D GetCover(Int2 mainPosition, Archetype archetype, int rotation) => GetCover(mainPosition, archetype, GetRotated(rotation));
 		public static EnumerableSpace2D GetCover(Int2 mainPosition, Archetype archetype, bool rotated) => new EnumerableSpace2D(mainPosition, mainPosition + GetSize(archetype, rotated) - Int2.one);
+
+		public override string ToString() => $"{GetType()} at {mainPosition} with rotation {rotation}";
 	}
 }

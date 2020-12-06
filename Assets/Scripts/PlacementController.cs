@@ -3,7 +3,6 @@ using BlueWire.Tiles;
 using BlueWire.UI;
 using BlueWire.Worlds;
 using CodeHelpers.Vectors;
-using CodeHelpers.Vectors.Enumerables;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -34,11 +33,11 @@ namespace BlueWire
 				Tile tile = WorldUtility.GetTile(worldPosition.Floored);
 				if (tile == null) return;
 
-				foreach (Int2 position in tile.Cover)
-				{
-					WorldUtility.SetTile(position, null);
-					NotifyNeighbors(tile, position);
-				}
+				foreach (Int2 position in tile.Cover) WorldUtility.SetTile(position, null);
+
+				tile.OnRemoved();
+
+				foreach (Int2 position in tile.Cover) NotifyNeighbors(tile, position);
 			}
 			else
 			{
@@ -47,11 +46,11 @@ namespace BlueWire
 
 				Tile tile = archetype.GetNewTile(min, rotation);
 
-				foreach (Int2 position in tile.Cover)
-				{
-					WorldUtility.SetTile(position, tile);
-					NotifyNeighbors(tile, position);
-				}
+				foreach (Int2 position in tile.Cover) WorldUtility.SetTile(position, tile);
+
+				tile.OnCreated();
+
+				foreach (Int2 position in tile.Cover) NotifyNeighbors(tile, position);
 			}
 
 			tileWorldDisplay.RedrawWorld();
@@ -62,11 +61,11 @@ namespace BlueWire
 			Int2 offset = position - tile.mainPosition;
 			Int2 oneLess = tile.Size - Int2.one;
 
-			if (offset.x == 0) WorldUtility.GetTile(position + Int2.left)?.OnNeighborChanged();
-			if (offset.y == 0) WorldUtility.GetTile(position + Int2.down)?.OnNeighborChanged();
+			if (offset.x == 0) WorldUtility.GetTile(position + Int2.left)?.OnNeighborChanged(position);
+			if (offset.y == 0) WorldUtility.GetTile(position + Int2.down)?.OnNeighborChanged(position);
 
-			if (offset.x == oneLess.x) WorldUtility.GetTile(position + Int2.right)?.OnNeighborChanged();
-			if (offset.y == oneLess.y) WorldUtility.GetTile(position + Int2.up)?.OnNeighborChanged();
+			if (offset.x == oneLess.x) WorldUtility.GetTile(position + Int2.right)?.OnNeighborChanged(position);
+			if (offset.y == oneLess.y) WorldUtility.GetTile(position + Int2.up)?.OnNeighborChanged(position);
 		}
 	}
 }
