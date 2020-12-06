@@ -1,5 +1,4 @@
-﻿using BlueWire.Wires;
-using BlueWire.Worlds;
+﻿using BlueWire.Worlds;
 using CodeHelpers.Unity.DelayedExecute;
 using CodeHelpers.Vectors;
 using CodeHelpers.Vectors.Enumerables;
@@ -7,11 +6,11 @@ using UnityEngine;
 
 namespace BlueWire.Tiles
 {
-	public class TileGridDisplay : MonoBehaviour
+	public class TileWorldDisplay : MonoBehaviour
 	{
 		void Awake()
 		{
-			viewportCamera.OnReoriented += OnCameraReoriented;
+			viewportCamera.OnReoriented += RedrawWorld;
 		}
 
 		[SerializeField] float lineThickness = 0.03f;
@@ -22,32 +21,7 @@ namespace BlueWire.Tiles
 
 		//readonly List<Transform> lineTransforms = new List<Transform>();
 
-		void Update()
-		{
-			bool add = Input.GetKey(KeyCode.Mouse0);
-			bool remove = Input.GetKey(KeyCode.Mouse1);
-
-			if (add == remove) return;
-
-			Float2 worldPosition = viewportCamera.MousePosition;
-			Int2 position = viewportCamera.ViewportToWorld(worldPosition).Floored;
-			Tile tile = WorldUtility.GetTile(position);
-
-			if (tile == null ? remove : add) return;
-			tile = add ? new Wire(position) : null;
-
-			WorldUtility.SetTile(position, tile);
-			if (tile is Wire wire) wire.RecalculateNeighbors();
-
-			foreach (Int2 offset in Int2.edges4)
-			{
-				WorldUtility.GetTile<Wire>(offset + position)?.RecalculateNeighbors();
-			}
-
-			OnCameraReoriented();
-		}
-
-		void OnCameraReoriented()
+		public void RedrawWorld()
 		{
 			transform.DestroyAllChildren();
 
@@ -93,9 +67,10 @@ namespace BlueWire.Tiles
 				GameObject tileObject = new GameObject("Tile");
 				tileObject.transform.SetParent(transform, false);
 
-				tileObject.AddComponent<SpriteRenderer>().sprite = tile.GetSprite(Int2.zero);
+				tileObject.AddComponent<SpriteRenderer>().sprite = tile.GetSprite(tile.TransformWorldToLocal(position));
 
 				tileObject.transform.localPosition = viewportCamera.WorldToViewport(position + Float2.half).XY_;
+				tileObject.transform.localEulerAngles = Float3.backward * tile.rotation;
 				tileObject.transform.localScale = (Float2.one / multiplier).CreateXY(1f);
 			}
 		}

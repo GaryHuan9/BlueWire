@@ -9,14 +9,13 @@ namespace BlueWire.Wires
 {
 	public class Wire : Tile
 	{
-		public Wire(Int2 position) : base(position) { }
+		public Wire(Int2 mainPosition, int rotation, Archetype archetype) : base(mainPosition, rotation, archetype) => RecalculateNeighbors();
 
 		static Wire()
 		{
 			const int Size = 5;
-			var edges = Int2.edges4;
 
-			var defaultColors = new Color[Size * Size];
+			var edges = Int2.edges4;
 			var sprites = new List<Sprite>();
 
 			Color wireColor = Color.white;
@@ -24,29 +23,23 @@ namespace BlueWire.Wires
 
 			begin:
 
-			//Add inner circle
-			for (int x = -1; x <= 1; x++)
-			{
-				for (int y = -1; y <= 1; y++)
-				{
-					Int2 position = new Int2(x, y) + (Int2)(Size / 2);
-					Color color = x == 0 && y == 0 ? coreColor : wireColor;
-
-					defaultColors[position.x * Size + position.y] = color;
-				}
-			}
-
-			//Add connection lines
 			for (int i = 0; i < 1 << edges.Count; i++)
 			{
-				Texture2D texture = new Texture2D(Size, Size, TextureFormat.RGBA32, true)
-									{
-										filterMode = FilterMode.Point,
-										wrapMode = TextureWrapMode.Clamp
-									};
+				Color[,] pixels = new Color[Size, Size];
 
-				texture.SetPixels(defaultColors);
+				//Add inner ring + clear pixels
+				for (int x = 0; x < Size; x++)
+				{
+					for (int y = 0; y < Size; y++)
+					{
+						Int2 offset = new Int2(x, y) - (Int2)(Size / 2);
+						Color color = offset == Int2.zero ? coreColor : wireColor;
 
+						pixels[x, y] = offset.Absoluted.MaxComponent > 1 ? Color.clear : color;
+					}
+				}
+
+				//Add connections
 				for (int j = 0; j < edges.Count; j++)
 				{
 					if ((i & (1 << j)) == 0) continue;
@@ -56,14 +49,13 @@ namespace BlueWire.Wires
 					{
 						Int2 position = edge * k + (Int2)(Size / 2);
 
-						texture.SetPixel(position.x + edge.y, position.y + edge.x, wireColor);
-						texture.SetPixel(position.x - edge.y, position.y - edge.x, wireColor);
-						texture.SetPixel(position.x, position.y, coreColor);
+						pixels[position.x + edge.y, position.y + edge.x] = wireColor;
+						pixels[position.x - edge.y, position.y - edge.x] = wireColor;
+						pixels[position.x, position.y] = coreColor;
 					}
 				}
 
-				texture.Apply();
-				sprites.Add(Sprite.Create(texture, new Rect(Float2.zero, (Int2)Size), Float2.half, Size));
+				sprites.Add(CreateSprite(pixels));
 			}
 
 			if (coreColor == Color.clear)
@@ -87,11 +79,17 @@ namespace BlueWire.Wires
 
 			for (int i = 0; i < edges.Count; i++)
 			{
-				if (WorldUtility.GetTile<Wire>(position + edges[i]) == null) continue;
+				if (WorldUtility.GetTile<Wire>(mainPosition + edges[i]) == null) continue;
 				neighbors |= 1 << i;
 			}
 		}
 
 		public override Sprite GetSprite(Int2 localPosition) => wireSprites[(powered > 0 ? 0b10000 : 0b0) | neighbors];
+
+		public override void OnNeighborChanged()
+		{
+			base.OnNeighborChanged();
+			RecalculateNeighbors();
+		}
 	}
 }
