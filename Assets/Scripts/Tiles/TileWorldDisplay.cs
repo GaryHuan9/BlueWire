@@ -1,5 +1,6 @@
 ﻿using BlueWire.Wires;
 using BlueWire.Worlds;
+using CodeHelpers.Unity;
 using CodeHelpers.Unity.DelayedExecute;
 using CodeHelpers.Vectors;
 using CodeHelpers.Vectors.Enumerables;
@@ -11,6 +12,7 @@ namespace BlueWire.Tiles
 	{
 		void Awake()
 		{
+			if (SingletonHelper.ThrowExceptionDestroyGameObject(ref _instance, this) != this) return;
 			viewportCamera.OnReoriented += RedrawWorld;
 		}
 
@@ -19,6 +21,9 @@ namespace BlueWire.Tiles
 
 		[SerializeField] ViewportCamera viewportCamera;
 		[SerializeField] Sprite whiteSprite;
+
+		static TileWorldDisplay _instance;
+		public static TileWorldDisplay Instance => _instance;
 
 		//readonly List<Transform> lineTransforms = new List<Transform>();
 
@@ -70,7 +75,7 @@ namespace BlueWire.Tiles
 
 				tileObject.AddComponent<SpriteRenderer>().sprite = tile.GetSprite(tile.TransformWorldToLocal(position));
 
-				if (tile is Wire wire)
+				if (tile is Wire wire && false)
 				{
 					int hashCode = wire.Wires.GetHashCode();
 					Color color = new Color32((byte)((hashCode >> 16) & 0xFF), (byte)((hashCode >> 8) & 0xFF), (byte)(hashCode & 0xFF), byte.MaxValue);

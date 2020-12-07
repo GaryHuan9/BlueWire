@@ -7,7 +7,7 @@ namespace BlueWire.Wires
 {
 	public abstract class Microchip : Tile
 	{
-		protected Microchip(Int2 mainPosition, int rotation, Archetype archetype) : base(mainPosition, rotation, archetype) { }
+		protected Microchip(Int2 mainPosition, int rotation, Archetype archetype) : base(mainPosition, rotation, archetype) => WorldUtility.Active.simulator.AddMicrochip(this);
 
 		public abstract IReadOnlyList<Port> InPorts { get; }
 		public abstract IReadOnlyList<Port> OutPorts { get; }
@@ -29,6 +29,8 @@ namespace BlueWire.Wires
 			{
 				if (port.Connected) port.Disconnect();
 			}
+
+			WorldUtility.Active.simulator.RemoveMicrochip(this);
 		}
 
 		public override void OnNeighborChanged(Int2 neighbor)
@@ -36,6 +38,8 @@ namespace BlueWire.Wires
 			base.OnNeighborChanged(neighbor);
 			RefreshPorts(neighbor);
 		}
+
+		public abstract void Transmit();
 
 		void RefreshPorts(Int2? position = null)
 		{

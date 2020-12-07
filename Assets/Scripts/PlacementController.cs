@@ -18,9 +18,10 @@ namespace BlueWire
 
 		void Update()
 		{
-			if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Mouse1)) paletteDisplay.SelectedArchetype = null;
 			if (Input.GetKeyDown(KeyCode.R)) rotation = (rotation + 90).ToUnsignedAngle();
+			if (Input.GetKeyDown(KeyCode.Mouse2)) paletteDisplay.SelectedArchetype = paletteDisplay.Palette.GetArchetype<DemolitionArchetype>();
 
+			if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Mouse1)) paletteDisplay.SelectedArchetype = null;
 			if (!Input.GetKey(KeyCode.Mouse0) || EventSystem.current.IsPointerOverGameObject()) return;
 
 			var archetype = paletteDisplay.SelectedArchetype;

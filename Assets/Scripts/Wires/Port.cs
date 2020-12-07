@@ -31,6 +31,8 @@ namespace BlueWire.Wires
 		public Int2 Position => microchip.TransformLocalToWorld(localPosition);
 		public Int2 Direction => localDirection.Rotate(-microchip.rotation).Rounded;
 
+		public bool Value { get; set; }
+
 		public void Connect(WireBundle bundle)
 		{
 			if (Connected) throw new Exception($"Disconnect the existing bundle '{ConnectedBundle}' first!");

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BlueWire.Tiles;
 using BlueWire.Wires;
 using CodeHelpers;
@@ -15,6 +16,8 @@ namespace BlueWire
 			AddArchetype(new DemolitionArchetype());
 			AddArchetype(new WireArchetype());
 			AddArchetype(new InverterArchetype());
+			AddArchetype(new RepeaterArchetype());
+			AddArchetype(new ConstantArchetype());
 		}
 
 		readonly List<Archetype> archetypes = new List<Archetype>();
@@ -28,6 +31,8 @@ namespace BlueWire
 			if (archetypes.IsIndexValid(index)) return archetypes[index];
 			throw ExceptionHelper.Invalid(nameof(index), index, InvalidType.outOfBounds);
 		}
+
+		public T GetArchetype<T>() where T : Archetype => archetypes.FirstOrDefault(archetype => archetype is T) as T;
 
 		public void AddArchetype(Archetype archetype)
 		{
@@ -65,8 +70,24 @@ namespace BlueWire
 	public class InverterArchetype : Archetype
 	{
 		public override string Name => "NOT";
-		public override Int2 Size => new Int2(2, 1);
+		public override Int2 Size => Int2.one;
 
 		public override Tile GetNewTile(Int2 position, int rotation) => new Inverter(position, rotation, this);
+	}
+
+	public class RepeaterArchetype : Archetype
+	{
+		public override string Name => "Repeater";
+		public override Int2 Size => Int2.one;
+
+		public override Tile GetNewTile(Int2 position, int rotation) => new Repeater(position, rotation, this);
+	}
+
+	public class ConstantArchetype : Archetype
+	{
+		public override string Name => "Constant";
+		public override Int2 Size => Int2.one;
+
+		public override Tile GetNewTile(Int2 position, int rotation) => new Constant(position, rotation, this);
 	}
 }

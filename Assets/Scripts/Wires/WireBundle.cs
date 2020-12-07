@@ -1,20 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using BlueWire.Worlds;
 using CodeHelpers;
 using UnityEngine.Assertions;
 
 namespace BlueWire.Wires
 {
-	public class WireBundle
+	public class WireBundle : IDisposable
 	{
-		readonly List<Port> inPorts = new List<Port>();
-		readonly List<Port> outPorts = new List<Port>();
+		public WireBundle() => WorldUtility.Active.simulator.AddWireBundle(this);
 
-		bool discarded;
+		readonly List<Port> inPorts = new List<Port>();  //The ports that takes input from this bundle
+		readonly List<Port> outPorts = new List<Port>(); //The ports that outputs into this bundle
+
+		bool disposed;
+		int lastPowered = int.MaxValue;
+
+		public bool Powered => lastPowered != int.MaxValue;
 
 		public void JoinPort(Port port)
 		{
+			Assert.IsFalse(disposed);
 			Assert.AreEqual(port.ConnectedBundle, this);
+
 			List<Port> list = GetPortList(port);
 
 			if (!list.Contains(port)) list.Add(port);
@@ -23,6 +31,7 @@ namespace BlueWire.Wires
 
 		public void DisjoinPort(Port port)
 		{
+			Assert.IsFalse(disposed);
 			Assert.AreEqual(port.ConnectedBundle, this);
 
 			List<Port> list = GetPortList(port);
@@ -31,12 +40,20 @@ namespace BlueWire.Wires
 			throw ExceptionHelper.Invalid(nameof(port), port, InvalidType.notFound);
 		}
 
+		List<Port> GetPortList(Port port)
+		{
+			if (!disposed) return port.portType == PortType.input ? inPorts : outPorts;
+			throw ExceptionHelper.Invalid(nameof(WireBundle), this, "is already disposed!");
+		}
+
 		public void Merge(WireBundle bundle)
 		{
+			Assert.IsFalse(disposed);
+
 			for (int i = bundle.inPorts.Count - 1; i >= 0; i--) TransferPort(bundle.inPorts[i]);
 			for (int i = bundle.outPorts.Count - 1; i >= 0; i--) TransferPort(bundle.outPorts[i]);
 
-			bundle.discarded = true;
+			bundle.Dispose();
 
 			void TransferPort(Port port)
 			{
@@ -51,6 +68,7 @@ namespace BlueWire.Wires
 		/// </summary>
 		public WireBundle Split(Func<Port, bool> predicate)
 		{
+			Assert.IsFalse(disposed);
 			WireBundle bundle = new WireBundle();
 
 			for (int i = inPorts.Count - 1; i >= 0; i--) TransferPort(inPorts[i]);
@@ -67,10 +85,31 @@ namespace BlueWire.Wires
 			}
 		}
 
-		List<Port> GetPortList(Port port)
+		public void Transmit()
 		{
-			if (!discarded) return port.portType == PortType.input ? inPorts : outPorts;
-			throw ExceptionHelper.Invalid(nameof(WireBundle), this, "is already discarded!");
+			Assert.IsFalse(disposed);
+
+			//Power transmits from the ports that output to this bundle to the ports that take inputs from this bundle
+
+			bool powered = outPorts.Count > lastPowered && outPorts[lastPowered].Value;
+			int index = 0;
+
+			for (; !powered && index < outPorts.Count; index++)
+			{
+				if (index == lastPowered) continue;
+				powered |= outPorts[index].Value;
+			}
+
+			for (int i = 0; i < inPorts.Count; i++) inPorts[i].Value = powered;
+			lastPowered = powered ? index : int.MaxValue;
+		}
+
+		public void Dispose()
+		{
+			if (disposed) return;
+
+			WorldUtility.Active.simulator.RemoveWireBundle(this);
+			disposed = true;
 		}
 	}
 }

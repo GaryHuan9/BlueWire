@@ -78,6 +78,7 @@ namespace BlueWire.Wires
 		BitVector32 neighbors;
 
 		public WireBundle Wires { get; private set; }
+		public bool Powered => Wires.Powered;
 
 		public override void OnCreated()
 		{
@@ -188,7 +189,7 @@ namespace BlueWire.Wires
 			CollectionPooler<HashSet<Wire>>.list.ReleaseObject(branches);
 		}
 
-		public override Sprite GetSprite(Int2 localPosition) => wireSprites[neighbors.Data];
+		public override Sprite GetSprite(Int2 localPosition) => wireSprites[(Powered ? 0b10000 : 0b0) | neighbors.Data];
 
 		void RecalculateNeighbors()
 		{
